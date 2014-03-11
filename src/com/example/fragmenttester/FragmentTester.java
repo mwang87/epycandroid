@@ -1,5 +1,6 @@
 package com.example.fragmenttester;
 
+import java.io.ByteArrayOutputStream;
 import java.util.UUID;
 
 import android.support.v7.app.ActionBarActivity;
@@ -62,6 +63,21 @@ public class FragmentTester extends ActionBarActivity {
 	public void paintClicked(View view){
 		//findFragmentById(R.id.)
 		placeholderFragment.paintClicked(view);
+		
+		//reusing this to close fragment and create new one
+		Bitmap drawn = placeholderFragment.getImage();
+		getSupportFragmentManager().beginTransaction().remove(placeholderFragment).commit();
+		
+		DisplayFragment f = new DisplayFragment();
+	    // Supply index input as an argument.
+	    Bundle args = new Bundle();
+	    ByteArrayOutputStream bs = new ByteArrayOutputStream();
+	    drawn.compress(Bitmap.CompressFormat.PNG, 50, bs);
+	    args.putByteArray("bitmap", bs.toByteArray());
+	    f.setArguments(args);
+	    
+	    getSupportFragmentManager().beginTransaction()
+		.add(R.id.container, f).commit();
 	}
 
 	/**
@@ -76,7 +92,13 @@ public class FragmentTester extends ActionBarActivity {
 		//sizes
 		private float smallBrush, mediumBrush, largeBrush;
 		
+		private Bitmap drawnimage;
+		
 		public PlaceholderFragment() {
+		}
+		
+		public Bitmap getImage(){
+			return drawnimage;
 		}
 
 		@Override
@@ -245,7 +267,8 @@ public class FragmentTester extends ActionBarActivity {
 			}
 			else if(view.getId()==R.id.save_btn){
 				drawView.setDrawingCacheEnabled(true);
-				Bitmap x = drawView.getDrawingCache();
+				Bitmap temp = drawView.getDrawingCache();
+				drawnimage = Bitmap.createBitmap(temp, 0, 0, temp.getWidth(), temp.getHeight(), null, false);
 				drawView.destroyDrawingCache();
 				/*
 				//save drawing
